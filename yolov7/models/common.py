@@ -12,10 +12,10 @@ from torchvision.ops import DeformConv2d
 from PIL import Image
 from torch.cuda import amp
 
-from utils.datasets import letterbox
-from utils.general import non_max_suppression, make_divisible, scale_coords, increment_path, xyxy2xywh
-from utils.plots import color_list, plot_one_box
-from utils.torch_utils import time_synchronized
+from yolov7.utils.datasets import letterbox
+from yolov7.utils.general import non_max_suppression, make_divisible, scale_coords, increment_path, xyxy2xywh
+from yolov7.utils.plots import color_list, plot_one_box
+from yolov7.utils.torch_utils import time_synchronized
 
 
 ##### basic ####
@@ -876,7 +876,7 @@ class autoShape(nn.Module):
         print('autoShape already enabled, skipping... ')  # model already converted to model.autoshape()
         return self
 
-    @torch.no_grad()
+    # @torch.no_grad()
     def forward(self, imgs, size=640, augment=False, profile=False):
         # Inference from various sources. For height=640, width=1280, RGB images example inputs are:
         #   filename:   imgs = 'data/samples/zidane.jpg'

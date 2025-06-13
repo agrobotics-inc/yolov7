@@ -3,8 +3,8 @@ import random
 import torch
 import torch.nn as nn
 
-from models.common import Conv, DWConv
-from utils.google_utils import attempt_download
+from yolov7.models.common import Conv, DWConv
+from yolov7.utils.google_utils import attempt_download
 
 
 class CrossConv(nn.Module):
@@ -247,6 +247,9 @@ class End2End(nn.Module):
 def attempt_load(weights, map_location=None):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
     model = Ensemble()
+    import yolov7.models
+    import sys
+    sys.modules['models'] = yolov7.models ## TODO: add a safe way to import models
     for w in weights if isinstance(weights, list) else [weights]:
         attempt_download(w)
         ckpt = torch.load(w, map_location=map_location, weights_only=False)  # load

@@ -3,16 +3,16 @@ import logging
 import sys
 from copy import deepcopy
 
-sys.path.append('./')  # to run '$ python *.py' files in subdirectories
+# sys.path.append('./')  # to run '$ python *.py' files in subdirectories
 logger = logging.getLogger(__name__)
 import torch
-from models.common import *
-from models.experimental import *
-from utils.autoanchor import check_anchor_order
-from utils.general import make_divisible, check_file, set_logging
-from utils.torch_utils import time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights, \
+from yolov7.models.common import *
+from yolov7.models.experimental import *
+from yolov7.utils.autoanchor import check_anchor_order
+from yolov7.utils.general import make_divisible, check_file, set_logging
+from yolov7.utils.torch_utils import time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights, \
     select_device, copy_attr
-from utils.loss import SigmoidBin
+from yolov7.utils.loss import SigmoidBin
 
 try:
     import thop  # for FLOPS computation
@@ -578,7 +578,7 @@ class Model(nn.Module):
         self.info()
         logger.info('')
 
-    def forward(self, x, augment=False, profile=False):
+    def forward(self, x, augment=False, profile=False, return_layer=-1):
         if augment:
             img_size = x.shape[-2:]  # height, width
             s = [1, 0.83, 0.67]  # scales
@@ -596,10 +596,11 @@ class Model(nn.Module):
                 y.append(yi)
             return torch.cat(y, 1), None  # augmented inference, train
         else:
-            return self.forward_once(x, profile)  # single-scale inference, train
+            return self.forward_once(x, profile, return_layer)  # single-scale inference, train
 
-    def forward_once(self, x, profile=False):
+    def forward_once(self, x, profile=False, return_layer=-1):
         y, dt = [], []  # outputs
+        count = 1
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -625,6 +626,10 @@ class Model(nn.Module):
             x = m(x)  # run
             
             y.append(x if m.i in self.save else None)  # save output
+            # print(count, m.f)
+            if count == return_layer:
+                break
+            count += 1
 
         if profile:
             print('%.1fms total' % sum(dt))
